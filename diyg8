@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -euo pipefail
+
+echo -e "Choose DevInsideYou template:"
+DIY_G8_TEMPLATE=$(gum choose "scala3-seed" "scala-seed" "cat")
+
+if [ $(command -v g8) ]; then
+  INSTALL_COMMAND="g8 devinsideyou/$DIY_G8_TEMPLATE"
+elif [ $(command -v cs) ]; then
+  INSTALL_COMMAND="cs launch giter8 -- devinsideyou/$DIY_G8_TEMPLATE"
+elif [ $(command -v sbt) ]; then
+  INSTALL_COMMAND="sbt new devinsideyou/$DIY_G8_TEMPLATE.g8"
+else
+  "Install one of these and try again: giter8, coursier or sbt!"
+  exit 1
+fi
+
+echo -e "Wait for it..."
+$INSTALL_COMMAND
+
+FOLDER=$(ls -d */ | sed 's/.$//' | gum filter --placeholder "Select your project:")
+cd $FOLDER
+
+gum confirm "Init git repo?" && (git init && git add . && git commit -m "Initial commit")
+gum confirm "Launch sbt?" && sbt || (gum confirm "Launch VSCode?" && code .)
+
